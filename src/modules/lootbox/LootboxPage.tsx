@@ -1,4 +1,3 @@
-// src/modules/lootbox/LootboxPage.tsx
 import {
   Box,
   Button,
@@ -6,7 +5,7 @@ import {
   Typography,
   useTheme,
   useMediaQuery,
-  ButtonBase, // <-- IMPORTADO AQUI
+  ButtonBase,
 } from "@mui/material";
 
 import { useMensagem } from "./useLootbox";
@@ -18,6 +17,8 @@ import Img1 from "@/assets/images/empatia.jpg";
 import Img2 from "@/assets/images/esperaca.jpg";
 import Img3 from "@/assets/images/positvo.jpg";
 import Img4 from "@/assets/images/saude.jpg";
+
+import { keyframes } from "@mui/system";
 
 import {
   mainContainerStyle,
@@ -36,6 +37,12 @@ const opcoes = [
   { label: "Opção 3", src: Img3 },
   { label: "Opção 4", src: Img4 },
 ];
+
+const oscilar = keyframes`
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-8px); }
+  100% { transform: translateY(0); }
+`;
 
 export default function LootboxPage() {
   const {
@@ -76,15 +83,30 @@ export default function LootboxPage() {
                   "&:hover": { bgcolor: "transparent" },
                 }}
               >
-                <img
+                <Box
+                  component="img"
                   src={src}
                   alt={label}
-                  style={{
+                  sx={{
                     width: "100%",
-                    height: 100,
+                    height: 160, 
                     objectFit: "contain",
                     display: "block",
                     border: "none",
+                    transition:
+                      "transform .2s ease, filter .2s ease, box-shadow .2s ease",
+                    ...(mensagemSelecionada === label
+                      ? {
+                          animation: `${oscilar} 1s ease-in-out infinite`,
+                          willChange: "transform",
+                          "&:hover": { filter: "brightness(1.08)" }, 
+                        }
+                      : {
+                          "&:hover": {
+                            transform: "translateY(-6px) scale(1.04)",
+                            filter: "brightness(1.05)",
+                          },
+                        }),
                   }}
                 />
               </ButtonBase>
@@ -108,15 +130,30 @@ export default function LootboxPage() {
                   "&:hover": { bgcolor: "transparent" },
                 }}
               >
-                <img
+                <Box
+                  component="img"
                   src={src}
                   alt={label}
-                  style={{
-                    width: 250,
-                    height: 250,
+                  sx={{
+                    width: 220,
+                    height: 220, 
                     objectFit: "contain",
                     display: "block",
                     border: "none",
+                    transition:
+                      "transform .2s ease, filter .2s ease, box-shadow .2s ease",
+                    ...(mensagemSelecionada === label
+                      ? {
+                          animation: `${oscilar} 1s ease-in-out infinite`,
+                          willChange: "transform",
+                          "&:hover": { filter: "brightness(1.08)" },
+                        }
+                      : {
+                          "&:hover": {
+                            transform: "translateY(-6px) scale(1.04)",
+                            filter: "brightness(1.05)",
+                          },
+                        }),
                   }}
                 />
               </ButtonBase>
@@ -124,7 +161,7 @@ export default function LootboxPage() {
           </Box>
         )}
 
-        {/* Seleção atual (opcional) */}
+        {/* Seleção atual */}
         {mensagemSelecionada && (
           <Typography variant="h6" sx={mensagemSelecionadoStyle}>
             Você selecionou: {mensagemSelecionada}
