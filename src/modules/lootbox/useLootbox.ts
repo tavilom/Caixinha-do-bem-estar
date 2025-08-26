@@ -6,38 +6,66 @@ import {
 } from "./lootboxService";
 import { AuthContext } from "@/context/AuthContext";
 
-// ⚙️ novo limite por dia
+// ===== Config =====
 const MAX_POR_DIA = 2;
 
-// 📁 cartas: "@/assets/images/coracao/cartas-coracao-*.{png,jpg,jpeg,webp}"
+type Carta = { key: string; url: string; filename: string };
+type TipoCarta = "coracao" | "flor";
+
+// Coração
 const globCoracao = import.meta.glob(
-  "@/assets/images/coracao/cartas-coracao-*.{png,jpg,jpeg,webp}",
+  "@/assets/images/coracao/cartas-coracao-*.{png,PNG,jpg,JPG,jpeg,JPEG,webp,WEBP}",
   { eager: true, import: "default" }
 ) as Record<string, string>;
 
-type Carta = { key: string; url: string; filename: string };
-const cartasCoracao: Carta[] = Object.entries(globCoracao)
-  .sort(([a], [b]) => a.localeCompare(b))
-  .map(([key, url]) => ({
-    key,
-    url,
-    filename: key.split("/").pop() || key,
-  }));
+// Flor
+const globFlor = import.meta.glob(
+  "@/assets/images/flor/cartas-flor-*.{png,PNG,jpg,JPG,jpeg,JPEG,webp,WEBP}",
+  { eager: true, import: "default" }
+) as Record<string, string>;
 
-const sortearCarta = (): Carta | null => {
-  if (!cartasCoracao.length) return null;
-  const idx = Math.floor(Math.random() * cartasCoracao.length);
-  return cartasCoracao[idx];
+// Monta baralho a partir do glob
+const montarDeck = (globMap: Record<string, string>): Carta[] =>
+  Object.entries(globMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, url]) => ({
+      key,
+      url,
+      filename: key.split("/").pop() || key,
+    }));
+
+const DECKS: Record<TipoCarta, Carta[]> = {
+  coracao: montarDeck(globCoracao),
+  flor: montarDeck(globFlor),
 };
 
+// Sorteia 1 carta do baralho
+const sortearCarta = (tipo: TipoCarta): Carta | null => {
+  const deck = DECKS[tipo];
+  if (!deck?.length) return null;
+  const idx = Math.floor(Math.random() * deck.length);
+  return deck[idx];
+};
+
+// Heurística para decidir o baralho pela opção escolhida
+const inferirTipoCarta = (opcao: string): TipoCarta => {
+  const txt = (opcao || "").toLowerCase();
+  if (txt.includes("flor")) return "flor";
+  if (txt.includes("coração") || txt.includes("coracao")) return "coracao";
+  // fallback por rótulo padrão
+  if (opcao === "Esperança") return "flor";
+  return "coracao";
+};
+
+// ================== Hook ==================
 export function useMensagem() {
   const [status, setStatus] = useState<string>("");
   const [mensagemSelecionada, setMensagemSelecionada] = useState<string>("");
-  const [enviadoHoje, setEnviadoHoje] = useState<boolean>(false); // agora significa "atingiu o limite (2)"
-  const [enviosHoje, setEnviosHoje] = useState<number>(0);        // contador do dia
+  const [enviadoHoje, setEnviadoHoje] = useState<boolean>(false); 
+  const [enviosHoje, setEnviosHoje] = useState<number>(0);
   const { perfil } = useContext(AuthContext);
 
-  // 🔎 calcula envios de HOJE para o usuário e marca limite quando chegar a 2
+  // Conta aberturas de hoje
   useEffect(() => {
     if (!perfil?.id) return;
 
@@ -130,12 +158,16 @@ export function useMensagem() {
     setStatus("Enviando...");
 
     try {
-      // sorteia a carta, salva o NOME no banco e mostra a MESMA imagem no Swal
-      const carta = sortearCarta();
+      // 1) Decide o baralho (coração ou flor) pela opção selecionada
+      const tipo = inferirTipoCarta(mensagemSelecionada);
+
+      // 2) Sorteia a carta e salva o NOME do arquivo no banco
+      const carta = sortearCarta(tipo);
 
       if (!carta) {
-        // fallback: sem imagens
-        await enviarAPI("cartas-coracao-00.jpg", String(perfil.id));
+        // fallback quando não houver imagens no deck
+        const nomeFallback = tipo === "flor" ? "cartas-flor-00.jpg" : "cartas-coracao-00.jpg";
+        await enviarAPI(nomeFallback, String(perfil.id));
         await Swal.fire({
           icon: "success",
           title: "Pronto!",
@@ -145,8 +177,9 @@ export function useMensagem() {
       } else {
         await enviarAPI(carta.filename, String(perfil.id));
 
+        // 3) Mostra a MESMA carta no Swal
         await Swal.fire({
-          title: "Sua carta ❤️",
+          title: tipo === "flor" ? "Sua flor 🌸" : "Sua carta ❤️",
           text: "Uma mensagem especial para você!",
           imageUrl: carta.url,
           imageAlt: carta.filename,
@@ -156,12 +189,10 @@ export function useMensagem() {
         });
       }
 
-      // ✅ atualiza contador/local-state após sucesso
+      // 4) Atualiza contador/limite local
       const novoCount = enviosHoje + 1;
       setEnviosHoje(novoCount);
-      const limiteAtingido = novoCount >= MAX_POR_DIA;
-      setEnviadoHoje(limiteAtingido);
-
+      setEnviadoHoje(novoCount >= MAX_POR_DIA);
       setStatus("");
     } catch (error: any) {
       console.error(error);
@@ -179,7 +210,7 @@ export function useMensagem() {
     status,
     mensagemSelecionada,
     setMensagemSelecionada,
-    enviadoHoje,     
+    enviadoHoje,
     handleClickMensagem,
     enviarMensagem,
     perfil,
