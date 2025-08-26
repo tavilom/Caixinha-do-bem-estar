@@ -1,0 +1,16 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/lootbox"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model mensagem {
+  id                Int      @id @default(autoincrement())
+  data_visualizacao DateTime @default(now()) @db.Timestamp(0)
+  nome_carta        String
+  id_ws             String?  @db.VarChar(100)
+}
