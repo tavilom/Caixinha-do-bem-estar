@@ -32,10 +32,10 @@ import {
 } from "@/modules/lootbox/lootboxStyle";
 
 const opcoes = [
-  { label: "Opção 1", src: Img1 },
-  { label: "Opção 2", src: Img2 },
-  { label: "Opção 3", src: Img3 },
-  { label: "Opção 4", src: Img4 },
+  { label: "Empatia & Afeto", src: Img1 },
+  { label: "Esperança", src: Img2 },
+  { label: "Pensamento Positivo", src: Img3 },
+  { label: "Saúde", src: Img4 },
 ];
 
 const oscilar = keyframes`
@@ -62,9 +62,8 @@ export default function LootboxPage() {
 
       <Paper elevation={5} sx={paperStyle}>
         <Typography variant="h1" sx={tituloStyle}>
-          Selecione uma caixinha para abrir e descubra sua mensagem!
+          Selecione duas caixinhas para abrir e descubra sua mensagem!
         </Typography>
-
         {isMobile ? (
           <Box sx={gridMobileStyle}>
             {opcoes.map(({ label, src }) => (
@@ -89,7 +88,7 @@ export default function LootboxPage() {
                   alt={label}
                   sx={{
                     width: "100%",
-                    height: 160, 
+                    height: 160, // tamanho mobile
                     objectFit: "contain",
                     display: "block",
                     border: "none",
@@ -99,7 +98,7 @@ export default function LootboxPage() {
                       ? {
                           animation: `${oscilar} 1s ease-in-out infinite`,
                           willChange: "transform",
-                          "&:hover": { filter: "brightness(1.08)" }, 
+                          "&:hover": { filter: "brightness(1.08)" }, // não interfere no transform da animação
                         }
                       : {
                           "&:hover": {
@@ -136,7 +135,7 @@ export default function LootboxPage() {
                   alt={label}
                   sx={{
                     width: 220,
-                    height: 220, 
+                    height: 220, // tamanho desktop
                     objectFit: "contain",
                     display: "block",
                     border: "none",
