@@ -6,38 +6,108 @@ import {
 } from "./lootboxService";
 import { AuthContext } from "@/context/AuthContext";
 
-// ⚙️ novo limite por dia
+// ===== Config =====
 const MAX_POR_DIA = 2;
 
-// 📁 cartas: "@/assets/images/coracao/cartas-coracao-*.{png,jpg,jpeg,webp}"
+type Carta = { key: string; url: string; filename: string };
+type TipoCarta = "coracao" | "flor" | "sol" | "nuvem";
+
+// Coração
 const globCoracao = import.meta.glob(
-  "@/assets/images/coracao/cartas-coracao-*.{png,jpg,jpeg,webp}",
+  "@/assets/images/coracao/cartas-coracao-*.{png,PNG,jpg,JPG,jpeg,JPEG,webp,WEBP}",
   { eager: true, import: "default" }
 ) as Record<string, string>;
 
-type Carta = { key: string; url: string; filename: string };
-const cartasCoracao: Carta[] = Object.entries(globCoracao)
-  .sort(([a], [b]) => a.localeCompare(b))
-  .map(([key, url]) => ({
-    key,
-    url,
-    filename: key.split("/").pop() || key,
-  }));
+// Sol
+const globSol = import.meta.glob(
+  "@/assets/images/sol/cartas-sol-*.{png,PNG,jpg,JPG,jpeg,JPEG,webp,WEBP}",
+  { eager: true, import: "default" }
+) as Record<string, string>;
 
-const sortearCarta = (): Carta | null => {
-  if (!cartasCoracao.length) return null;
-  const idx = Math.floor(Math.random() * cartasCoracao.length);
-  return cartasCoracao[idx];
+// Flor
+const globFlor = import.meta.glob(
+  "@/assets/images/flor/cartas-flor-*.{png,PNG,jpg,JPG,jpeg,JPEG,webp,WEBP}",
+  { eager: true, import: "default" }
+) as Record<string, string>;
+
+//Nuvem
+const globNuvem = import.meta.glob(
+  "@/assets/images/nuvem/cartas-nuvem-*.{png,PNG,jpg,JPG,jpeg,JPEG,webp,WEBP}",
+  { eager: true, import: "default" }
+) as Record<string, string>;
+
+// Monta baralho a partir do glob
+const montarDeck = (globMap: Record<string, string>): Carta[] =>
+  Object.entries(globMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, url]) => ({
+      key,
+      url,
+      filename: key.split("/").pop() || key,
+    }));
+
+const DECKS: Record<TipoCarta, Carta[]> = {
+  coracao: montarDeck(globCoracao),
+  flor: montarDeck(globFlor),
+  sol: montarDeck(globSol),
+  nuvem: montarDeck(globNuvem),
 };
 
+// Sorteia 1 carta do baralho
+const sortearCarta = (tipo: TipoCarta): Carta | null => {
+  const deck = DECKS[tipo];
+  if (!deck?.length) return null;
+  const idx = Math.floor(Math.random() * deck.length);
+  return deck[idx];
+};
+
+// Heurística para decidir o baralho pela opção escolhida
+// (ajuste os rótulos conforme sua UI: Empatia & Afeto => coracao, Esperança => flor, Sol/Esperança (Sol) => sol)
+const inferirTipoCarta = (opcao: string): TipoCarta => {
+  // normaliza para comparar sem acentos (saúde -> saude, coração -> coracao)
+  const txt = (opcao || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  // ☀️ sol / esperança (meu sol)
+  if (txt.includes("sol") || txt.includes("esperanca")) return "sol";
+
+  // 🌸 flor / pensamento positivo
+  if (
+    txt.includes("pensamento positivo") ||
+    (txt.includes("pensamento") && txt.includes("positivo")) ||
+    txt.includes("positivo") ||
+    txt.includes("flor")
+  ) {
+    return "flor";
+  }
+
+  // ❤️ coração / empatia & afeto
+  if (
+    txt.includes("empatia") ||
+    txt.includes("afeto") ||
+    txt.includes("coracao")
+  ) {
+    return "coracao";
+  }
+
+  // ☁️ nuvem / saúde
+  if (txt.includes("nuvem") || txt.includes("saude")) return "nuvem";
+
+  // fallback
+  return "coracao";
+};
+
+// ================== Hook ==================
 export function useMensagem() {
   const [status, setStatus] = useState<string>("");
   const [mensagemSelecionada, setMensagemSelecionada] = useState<string>("");
-  const [enviadoHoje, setEnviadoHoje] = useState<boolean>(false); // agora significa "atingiu o limite (2)"
-  const [enviosHoje, setEnviosHoje] = useState<number>(0);        // contador do dia
+  const [enviadoHoje, setEnviadoHoje] = useState<boolean>(false);
+  const [enviosHoje, setEnviosHoje] = useState<number>(0);
   const { perfil } = useContext(AuthContext);
 
-  // 🔎 calcula envios de HOJE para o usuário e marca limite quando chegar a 2
+  // Conta aberturas de hoje
   useEffect(() => {
     if (!perfil?.id) return;
 
@@ -105,7 +175,9 @@ export function useMensagem() {
     }
 
     if (!perfil?.id) {
-      setStatus("Não foi possível identificar seu perfil. Faça login novamente.");
+      setStatus(
+        "Não foi possível identificar seu perfil. Faça login novamente."
+      );
       Swal.fire({
         icon: "warning",
         title: "Sessão expirada",
@@ -130,12 +202,22 @@ export function useMensagem() {
     setStatus("Enviando...");
 
     try {
-      // sorteia a carta, salva o NOME no banco e mostra a MESMA imagem no Swal
-      const carta = sortearCarta();
+      // Decide o baralho pela opção selecionada
+      const tipo = inferirTipoCarta(mensagemSelecionada);
+
+      // Sorteia a carta e salva o NOME do arquivo no banco
+      const carta = sortearCarta(tipo);
 
       if (!carta) {
-        // fallback: sem imagens
-        await enviarAPI("cartas-coracao-00.jpg", String(perfil.id));
+        // fallbacks por baralho
+        const nomeFallback =
+          tipo === "flor"
+            ? "cartas-flor-00.jpg"
+            : tipo === "sol"
+            ? "cartas-sol-00.jpg"
+            : "cartas-coracao-00.jpg";
+
+        await enviarAPI(nomeFallback, String(perfil.id));
         await Swal.fire({
           icon: "success",
           title: "Pronto!",
@@ -146,7 +228,14 @@ export function useMensagem() {
         await enviarAPI(carta.filename, String(perfil.id));
 
         await Swal.fire({
-          title: "Sua carta ❤️",
+          title:
+            tipo === "sol"
+              ? "Sua esperança ☀️"
+              : tipo === "flor"
+              ? "Sua esperança 🌸"
+              : tipo === "nuvem"
+              ? "Sua saúde ☁️"
+              : "Sua carta de Empatia & Afeto ❤️",
           text: "Uma mensagem especial para você!",
           imageUrl: carta.url,
           imageAlt: carta.filename,
@@ -156,12 +245,10 @@ export function useMensagem() {
         });
       }
 
-      // ✅ atualiza contador/local-state após sucesso
+      // Atualiza contador/limite
       const novoCount = enviosHoje + 1;
       setEnviosHoje(novoCount);
-      const limiteAtingido = novoCount >= MAX_POR_DIA;
-      setEnviadoHoje(limiteAtingido);
-
+      setEnviadoHoje(novoCount >= MAX_POR_DIA);
       setStatus("");
     } catch (error: any) {
       console.error(error);
@@ -179,7 +266,7 @@ export function useMensagem() {
     status,
     mensagemSelecionada,
     setMensagemSelecionada,
-    enviadoHoje,     
+    enviadoHoje,
     handleClickMensagem,
     enviarMensagem,
     perfil,
