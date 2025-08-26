@@ -1,0 +1,3 @@
+http://localhost:5173/?nomeCompleto=Jocias%20Maier%20Zanatta&setor=administracao&email=jzanatta@unimedpelotas.com.br&id=569663&usuario=jzannata
+
+VITE_API_URL: "http://192.168.10.2:3000"
