@@ -10,7 +10,7 @@ import { AuthContext } from "@/context/AuthContext";
 const MAX_POR_DIA = 2;
 
 type Carta = { key: string; url: string; filename: string };
-type TipoCarta = "coracao" | "flor";
+type TipoCarta = "coracao" | "flor" | "sol" | "nuvem";
 
 // Coração
 const globCoracao = import.meta.glob(
@@ -18,9 +18,21 @@ const globCoracao = import.meta.glob(
   { eager: true, import: "default" }
 ) as Record<string, string>;
 
+// Sol
+const globSol = import.meta.glob(
+  "@/assets/images/sol/cartas-sol-*.{png,PNG,jpg,JPG,jpeg,JPEG,webp,WEBP}",
+  { eager: true, import: "default" }
+) as Record<string, string>;
+
 // Flor
 const globFlor = import.meta.glob(
   "@/assets/images/flor/cartas-flor-*.{png,PNG,jpg,JPG,jpeg,JPEG,webp,WEBP}",
+  { eager: true, import: "default" }
+) as Record<string, string>;
+
+//Nuvem
+const globNuvem = import.meta.glob(
+  "@/assets/images/nuvem/cartas-nuvem-*.{png,PNG,jpg,JPG,jpeg,JPEG,webp,WEBP}",
   { eager: true, import: "default" }
 ) as Record<string, string>;
 
@@ -37,6 +49,8 @@ const montarDeck = (globMap: Record<string, string>): Carta[] =>
 const DECKS: Record<TipoCarta, Carta[]> = {
   coracao: montarDeck(globCoracao),
   flor: montarDeck(globFlor),
+  sol: montarDeck(globSol),
+  nuvem: montarDeck(globNuvem),
 };
 
 // Sorteia 1 carta do baralho
@@ -48,12 +62,40 @@ const sortearCarta = (tipo: TipoCarta): Carta | null => {
 };
 
 // Heurística para decidir o baralho pela opção escolhida
+// (ajuste os rótulos conforme sua UI: Empatia & Afeto => coracao, Esperança => flor, Sol/Esperança (Sol) => sol)
 const inferirTipoCarta = (opcao: string): TipoCarta => {
-  const txt = (opcao || "").toLowerCase();
-  if (txt.includes("flor")) return "flor";
-  if (txt.includes("coração") || txt.includes("coracao")) return "coracao";
-  // fallback por rótulo padrão
-  if (opcao === "Esperança") return "flor";
+  // normaliza para comparar sem acentos (saúde -> saude, coração -> coracao)
+  const txt = (opcao || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  // ☀️ sol / esperança (meu sol)
+  if (txt.includes("sol") || txt.includes("esperanca")) return "sol";
+
+  // 🌸 flor / pensamento positivo
+  if (
+    txt.includes("pensamento positivo") ||
+    (txt.includes("pensamento") && txt.includes("positivo")) ||
+    txt.includes("positivo") ||
+    txt.includes("flor")
+  ) {
+    return "flor";
+  }
+
+  // ❤️ coração / empatia & afeto
+  if (
+    txt.includes("empatia") ||
+    txt.includes("afeto") ||
+    txt.includes("coracao")
+  ) {
+    return "coracao";
+  }
+
+  // ☁️ nuvem / saúde
+  if (txt.includes("nuvem") || txt.includes("saude")) return "nuvem";
+
+  // fallback
   return "coracao";
 };
 
@@ -61,7 +103,7 @@ const inferirTipoCarta = (opcao: string): TipoCarta => {
 export function useMensagem() {
   const [status, setStatus] = useState<string>("");
   const [mensagemSelecionada, setMensagemSelecionada] = useState<string>("");
-  const [enviadoHoje, setEnviadoHoje] = useState<boolean>(false); 
+  const [enviadoHoje, setEnviadoHoje] = useState<boolean>(false);
   const [enviosHoje, setEnviosHoje] = useState<number>(0);
   const { perfil } = useContext(AuthContext);
 
@@ -133,7 +175,9 @@ export function useMensagem() {
     }
 
     if (!perfil?.id) {
-      setStatus("Não foi possível identificar seu perfil. Faça login novamente.");
+      setStatus(
+        "Não foi possível identificar seu perfil. Faça login novamente."
+      );
       Swal.fire({
         icon: "warning",
         title: "Sessão expirada",
@@ -158,15 +202,21 @@ export function useMensagem() {
     setStatus("Enviando...");
 
     try {
-      // 1) Decide o baralho (coração ou flor) pela opção selecionada
+      // Decide o baralho pela opção selecionada
       const tipo = inferirTipoCarta(mensagemSelecionada);
 
-      // 2) Sorteia a carta e salva o NOME do arquivo no banco
+      // Sorteia a carta e salva o NOME do arquivo no banco
       const carta = sortearCarta(tipo);
 
       if (!carta) {
-        // fallback quando não houver imagens no deck
-        const nomeFallback = tipo === "flor" ? "cartas-flor-00.jpg" : "cartas-coracao-00.jpg";
+        // fallbacks por baralho
+        const nomeFallback =
+          tipo === "flor"
+            ? "cartas-flor-00.jpg"
+            : tipo === "sol"
+            ? "cartas-sol-00.jpg"
+            : "cartas-coracao-00.jpg";
+
         await enviarAPI(nomeFallback, String(perfil.id));
         await Swal.fire({
           icon: "success",
@@ -177,9 +227,15 @@ export function useMensagem() {
       } else {
         await enviarAPI(carta.filename, String(perfil.id));
 
-        // 3) Mostra a MESMA carta no Swal
         await Swal.fire({
-          title: tipo === "flor" ? "Sua flor 🌸" : "Sua carta ❤️",
+          title:
+            tipo === "sol"
+              ? "Sua esperança ☀️"
+              : tipo === "flor"
+              ? "Sua esperança 🌸"
+              : tipo === "nuvem"
+              ? "Sua saúde ☁️"
+              : "Sua carta de Empatia & Afeto ❤️",
           text: "Uma mensagem especial para você!",
           imageUrl: carta.url,
           imageAlt: carta.filename,
@@ -189,7 +245,7 @@ export function useMensagem() {
         });
       }
 
-      // 4) Atualiza contador/limite local
+      // Atualiza contador/limite
       const novoCount = enviosHoje + 1;
       setEnviosHoje(novoCount);
       setEnviadoHoje(novoCount >= MAX_POR_DIA);
