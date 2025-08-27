@@ -18,6 +18,7 @@ import Img2 from "@/assets/images/esperaca.jpg";
 import Img3 from "@/assets/images/positvo.jpg";
 import Img4 from "@/assets/images/saude.jpg";
 
+
 import { keyframes } from "@mui/system";
 
 import {
@@ -32,10 +33,10 @@ import {
 } from "@/modules/lootbox/lootboxStyle";
 
 const opcoes = [
-  { label: "Opção 1", src: Img1 },
-  { label: "Opção 2", src: Img2 },
-  { label: "Opção 3", src: Img3 },
-  { label: "Opção 4", src: Img4 },
+  { label: "Empatia & Afeto", src: Img1 },
+  { label: "Esperança", src: Img2 },
+  { label: "Pensamento Positivo", src: Img3 },
+  { label: "Saúde", src: Img4 },
 ];
 
 const oscilar = keyframes`
@@ -43,6 +44,7 @@ const oscilar = keyframes`
   50%  { transform: translateY(-8px); }
   100% { transform: translateY(0); }
 `;
+
 
 export default function LootboxPage() {
   const {
@@ -61,10 +63,10 @@ export default function LootboxPage() {
       <Navbar Logo={Logo} Logo2={Logo2} />
 
       <Paper elevation={5} sx={paperStyle}>
-        <Typography variant="h1" sx={tituloStyle}>
-          Selecione uma caixinha para abrir e descubra sua mensagem!
-        </Typography>
 
+        <Typography variant="h1" sx={tituloStyle}>
+          Selecione duas caixinhas para abrir e descubra sua mensagem!
+        </Typography>
         {isMobile ? (
           <Box sx={gridMobileStyle}>
             {opcoes.map(({ label, src }) => (
@@ -99,7 +101,7 @@ export default function LootboxPage() {
                       ? {
                           animation: `${oscilar} 1s ease-in-out infinite`,
                           willChange: "transform",
-                          "&:hover": { filter: "brightness(1.08)" }, 
+                          "&:hover": { filter: "brightness(1.08)" }, // não interfere no transform da animação
                         }
                       : {
                           "&:hover": {
@@ -136,7 +138,7 @@ export default function LootboxPage() {
                   alt={label}
                   sx={{
                     width: 220,
-                    height: 220, 
+                    height: 220, // tamanho desktop
                     objectFit: "contain",
                     display: "block",
                     border: "none",

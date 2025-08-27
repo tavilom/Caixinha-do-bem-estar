@@ -1,7 +1,7 @@
 import React, { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 
-const HumorPage = React.lazy(() => import("@/modules/lootbox/LootboxPage"));
+const LootboxPage = React.lazy(() => import("@/modules/lootbox/LootboxPage"));
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -9,8 +9,8 @@ export const AppRoutes: React.FC = () => {
       <Suspense fallback={null}>
         <Routes>
           {/* Suas rotas aqui */}
-          <Route index element={<HumorPage />} />
-          <Route path="/users" element={<HumorPage />} />
+          <Route index element={<LootboxPage />} />
+          <Route path="/lootbox" element={<LootboxPage />} />
 
           {/* Adicione outras rotas conforme necessário */}
         </Routes>
