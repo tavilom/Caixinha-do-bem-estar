@@ -23,7 +23,6 @@ import {
   heroTitleOutline,
   gridMobileStyle,
   gridDesktopStyle,
-  mensagemSelecionadoStyle,
   buttonEnviarStyle,
   statusTextStyle,
   // styles
@@ -182,11 +181,11 @@ export default function LootboxPage() {
           </Box>
         )}
 
-        {mensagemSelecionada && (
+        {/* {mensagemSelecionada && (
           <Typography variant="h6" sx={mensagemSelecionadoStyle}>
             Você selecionou: {mensagemSelecionada}
           </Typography>
-        )}
+        )} */}
 
         <Button
           variant="contained"
@@ -194,7 +193,7 @@ export default function LootboxPage() {
           onClick={enviarMensagem}
           disabled={!mensagemSelecionada || enviadoHoje}
         >
-          Abrir caixinha
+          Abrir caixinha - {mensagemSelecionada}
         </Button>
 
         {status && <Typography sx={statusTextStyle}>{status}</Typography>}

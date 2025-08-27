@@ -21,7 +21,7 @@ export const oscilar = keyframes`
 /* ===== Layout base (já existia) ===== */
 export const mainContainerStyle = {
   backgroundColor: "#D9D9D9",
-  minHeight: "150vh",
+  minHeight: "190vh",
 };
 
 export const paperStyle = {
@@ -93,7 +93,7 @@ export const heroTitleOutline = {
   fontFamily:
     "'Poppins','M PLUS Rounded 1c','Nunito', system-ui, sans-serif",
   fontWeight: 500,
-  fontSize: { xs: 48, sm: 72, md: 50 },
+  fontSize: { xs: 48, sm: 72, md: 40 },
   lineHeight: 1,
   color: "transparent",
   WebkitTextStrokeWidth: "2px",
