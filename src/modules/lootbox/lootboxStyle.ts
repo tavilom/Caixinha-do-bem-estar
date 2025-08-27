@@ -240,7 +240,7 @@ export const heroBrandWrap = {
 };
 
 export const heroBrandImg = {
-  width: { xs: "92%", sm: "720px", md: "900px" },
+  width: { xs: "92%", sm: "720px", md: "850px" },
   maxWidth: "100%",
   height: "auto",
   display: "block",
