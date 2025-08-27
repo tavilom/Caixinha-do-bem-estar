@@ -18,6 +18,7 @@ import Img2 from "@/assets/images/esperaca.jpg";
 import Img3 from "@/assets/images/positvo.jpg";
 import Img4 from "@/assets/images/saude.jpg";
 
+
 import { keyframes } from "@mui/system";
 
 import {
@@ -44,6 +45,7 @@ const oscilar = keyframes`
   100% { transform: translateY(0); }
 `;
 
+
 export default function LootboxPage() {
   const {
     status,
@@ -61,6 +63,7 @@ export default function LootboxPage() {
       <Navbar Logo={Logo} Logo2={Logo2} />
 
       <Paper elevation={5} sx={paperStyle}>
+
         <Typography variant="h1" sx={tituloStyle}>
           Selecione duas caixinhas para abrir e descubra sua mensagem!
         </Typography>
@@ -88,7 +91,7 @@ export default function LootboxPage() {
                   alt={label}
                   sx={{
                     width: "100%",
-                    height: 160, // tamanho mobile
+                    height: 160, 
                     objectFit: "contain",
                     display: "block",
                     border: "none",
