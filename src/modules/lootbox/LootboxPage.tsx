@@ -20,7 +20,7 @@ import Img4 from "@/assets/images/saude.jpg";
 import {
   mainContainerStyle,
   paperStyle,
-  tituloStyle,
+  heroTitleOutline,
   gridMobileStyle,
   gridDesktopStyle,
   mensagemSelecionadoStyle,
@@ -120,7 +120,7 @@ export default function LootboxPage() {
         {/* HERO sem bg image */}
         <HeroBanner />
 
-        <Typography variant="h1" sx={tituloStyle}>
+        <Typography variant="h1" sx={heroTitleOutline}>
           Selecione duas caixinhas para abrir e descubra sua mensagem!
         </Typography>
 

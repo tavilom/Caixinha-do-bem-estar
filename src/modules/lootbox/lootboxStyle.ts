@@ -21,7 +21,7 @@ export const oscilar = keyframes`
 /* ===== Layout base (já existia) ===== */
 export const mainContainerStyle = {
   backgroundColor: "#D9D9D9",
-  minHeight: "140vh",
+  minHeight: "150vh",
 };
 
 export const paperStyle = {
@@ -38,7 +38,7 @@ export const tituloStyle = {
   marginBottom: 2,
 };
 
-/* ===== HERO (sem imagem de background) – só estilos ===== */
+/* ===== HERO – só estilos ===== */
 export const heroContainerStyle = {
   position: "relative" as const,
   overflow: "hidden",
@@ -92,8 +92,8 @@ export const heroStripeGreenBottom = {
 export const heroTitleOutline = {
   fontFamily:
     "'Poppins','M PLUS Rounded 1c','Nunito', system-ui, sans-serif",
-  fontWeight: 900,
-  fontSize: { xs: 48, sm: 72, md: 96 },
+  fontWeight: 500,
+  fontSize: { xs: 48, sm: 72, md: 50 },
   lineHeight: 1,
   color: "transparent",
   WebkitTextStrokeWidth: "2px",
@@ -136,7 +136,7 @@ export const optionImageBaseStyle = {
 };
 
 export const optionImageMobileSize = { height: 160 };
-export const optionImageDesktopSize = { width: 220, height: 220 };
+export const optionImageDesktopSize = { width: 250, height: 250 };
 
 export const optionImageHoverStyle = {
   "&:hover": { transform: "translateY(-6px) scale(1.04)", filter: "brightness(1.05)" },
