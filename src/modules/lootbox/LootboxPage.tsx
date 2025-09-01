@@ -25,6 +25,7 @@ import {
   gridDesktopStyle,
   buttonEnviarStyle,
   statusTextStyle,
+
   // styles
   heroContainerStyle,
   heroSquarePinkTL,
@@ -36,6 +37,7 @@ import {
   heroCopyContainer,
   heroParagraph,
   heroFinalQuestion,
+
   // image styles
   optionButtonBaseStyle,
   optionImageBaseStyle,
@@ -131,6 +133,7 @@ export default function LootboxPage() {
                 aria-label={label}
                 onClick={() => handleClickMensagem(label)}
                 disableRipple
+                onDragStart={(e) => e.preventDefault()}
                 sx={optionButtonBaseStyle}
               >
                 <Box
@@ -159,6 +162,8 @@ export default function LootboxPage() {
                 aria-label={label}
                 onClick={() => handleClickMensagem(label)}
                 disableRipple
+                draggable={false}
+                onDragStart={(e) => e.preventDefault()}
                 sx={optionButtonBaseStyle}
               >
                 <Box

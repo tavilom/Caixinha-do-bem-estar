@@ -21,7 +21,7 @@ export const oscilar = keyframes`
 /* ===== Layout base (já existia) ===== */
 export const mainContainerStyle = {
   backgroundColor: "#D9D9D9",
-  minHeight: "190vh",
+  minHeight: "195vh",
 };
 
 export const paperStyle = {
