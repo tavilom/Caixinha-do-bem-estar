@@ -1,10 +1,10 @@
 {
-  "name": "termometro_humor_test_nest",
+  "name": "caixinha_bem_estar",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --open",
+    "dev": "vite --open --host",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
