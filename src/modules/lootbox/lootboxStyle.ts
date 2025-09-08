@@ -1,34 +1,37 @@
 import { Theme } from "@mui/material";
 import { keyframes } from "@mui/system";
 
-/* ===== Cores do hero (apenas para estilos) ===== */
 export const lootColors = {
   pink: "#E88AA7",
   pink2: "#EE9AAE",
   orange: "#F4B041",
   orangeDark: "#D1912E",
   green: "#52D0B0",
-  brown: "#5C3B2E",
+  yellow: "#FFFD37",
+  black: "#3E3E3E",
 };
 
-/* ===== Animação usada na imagem selecionada ===== */
 export const oscilar = keyframes`
   0%   { transform: translateY(0); }
   50%  { transform: translateY(-8px); }
   100% { transform: translateY(0); }
 `;
 
-/* ===== Layout base (já existia) ===== */
 export const mainContainerStyle = {
   backgroundColor: "#D9D9D9",
-  minHeight: "195vh",
+  minHeight: "100dvh",
+  m: 0,
+  p: 0,
+  display: "flow-root",
 };
 
 export const paperStyle = {
-  m: { xs: 2, md: 10 },
+  mx: { xs: 2, md: 10 },
+  mt: { xs: 2, sm: 3, md: 4 },
+  mb: { xs: 2, md: 10 },
   p: { xs: 2, md: 4 },
   display: "flex",
-  flexDirection: "column",
+  flexDirection: "column" as const,
   alignItems: "center",
 };
 
@@ -38,8 +41,7 @@ export const tituloStyle = {
   marginBottom: 2,
 };
 
-/* ===== HERO – só estilos ===== */
-export const heroContainerStyle = {
+export const secaoDestaqueContainer = {
   position: "relative" as const,
   overflow: "hidden",
   py: { xs: 6, sm: 8 },
@@ -48,7 +50,7 @@ export const heroContainerStyle = {
   bgcolor: "background.paper",
 };
 
-export const heroSquarePinkTL = {
+export const decoQuadradoRosaSupEsq = {
   position: "absolute" as const,
   top: { xs: 18, sm: 24 },
   left: { xs: 14, sm: 32 },
@@ -58,7 +60,7 @@ export const heroSquarePinkTL = {
   borderRadius: 1,
 };
 
-export const heroSquareOrangeTop = {
+export const decoQuadradoLaranjaTopoCentro = {
   position: "absolute" as const,
   top: { xs: 40, sm: 44 },
   left: "50%",
@@ -69,7 +71,7 @@ export const heroSquareOrangeTop = {
   borderRadius: 1,
 };
 
-export const heroSquarePinkRight = {
+export const decoQuadradoRosaDireita = {
   position: "absolute" as const,
   right: { xs: 14, sm: 32 },
   top: { xs: "38%", sm: "34%" },
@@ -79,7 +81,7 @@ export const heroSquarePinkRight = {
   borderRadius: 1,
 };
 
-export const heroStripeGreenBottom = {
+export const decoFaixaVerdeInferior = {
   position: "absolute" as const,
   left: { xs: -6, sm: 0 },
   bottom: { xs: 8, sm: 12 },
@@ -89,34 +91,31 @@ export const heroStripeGreenBottom = {
   borderRadius: 1.5,
 };
 
-export const heroTitleOutline = {
-  fontFamily:
-    "'Poppins','M PLUS Rounded 1c','Nunito', system-ui, sans-serif",
-  fontWeight: 500,
-  fontSize: { xs: 48, sm: 72, md: 40 },
+export const tituloDestaqueContorno = {
+  fontFamily: "'Poppins','M PLUS Rounded 1c','Nunito', system-ui, sans-serif",
+  fontWeight: 800,
+  fontSize: { xs: 48, sm: 72, md: 38 },
   lineHeight: 1,
-  color: "transparent",
-  WebkitTextStrokeWidth: "2px",
-  WebkitTextStrokeColor: lootColors.orange,
+  color: lootColors.orange,
   textTransform: "lowercase" as const,
   letterSpacing: "-0.02em",
-};
+} as const;
 
-export const heroSubtitleRow = { display: "inline-flex", alignItems: "center", gap: 1 };
-export const heroSubtitleText = {
-  fontFamily:
-    "'Poppins','M PLUS Rounded 1c','Nunito', system-ui, sans-serif",
+export const subtituloLinha = { display: "inline-flex", alignItems: "center", gap: 1 };
+
+export const subtituloTexto = {
+  fontFamily: "'Poppins','M PLUS Rounded 1c','Nunito', system-ui, sans-serif",
   fontWeight: 800,
   fontSize: { xs: 28, sm: 40, md: 48 },
   lineHeight: 1,
   color: lootColors.orange,
 };
 
-export const heroCopyContainer = { maxWidth: 900, mx: "auto", color: lootColors.brown, px: { xs: 1, sm: 2 } };
-export const heroParagraph = { mb: 1.5 };
-export const heroFinalQuestion = { fontWeight: 800 };
+export const textoIntroContainer = { maxWidth: 900, mx: "auto", color: lootColors.black, px: { xs: 1, sm: 2 } };
+export const paragrafoIntro = { mb: 1.5 };
+export const perguntaFinalDestaque = { fontWeight: 800 };
 
-/* ===== Estilos dos cards/imagens (sem mudar lógica) ===== */
+
 export const optionButtonBaseStyle = {
   p: 0,
   m: 0,
@@ -150,7 +149,6 @@ export const optionImageSelectedStyle = {
 export const selectedWiggle = (prefersReducedMotion: boolean) =>
   prefersReducedMotion ? {} : { animation: `${oscilar} 1s ease-in-out infinite` };
 
-/* ===== estilos já existentes (mantidos) ===== */
 export const gridMobileStyle = {
   display: "grid",
   gridTemplateColumns: "1fr 1fr",
@@ -223,6 +221,8 @@ export const buttonEnviarStyle = {
   mt: 3,
   fontSize: { xs: "0.9rem", md: "1rem" },
   px: 4,
+  bgcolor: lootColors.yellow,
+  color: lootColors.black,
 };
 
 export const statusTextStyle = {
@@ -231,15 +231,14 @@ export const statusTextStyle = {
 };
 
 
-// --- imagem do título 
-export const heroBrandWrap = {
+export const marcaContainerTitulo = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
   mb: { xs: 2, sm: 3 },
 };
 
-export const heroBrandImg = {
+export const marcaImagemTitulo = {
   width: { xs: "92%", sm: "720px", md: "850px" },
   maxWidth: "100%",
   height: "auto",

@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import Swal from "sweetalert2";
 import {
   verificarEnvioHoje,
@@ -6,34 +6,34 @@ import {
 } from "./lootboxService";
 import { AuthContext } from "@/context/AuthContext";
 
-// ===== Config =====
+
 const MAX_POR_DIA = 2;
 
 type Carta = { key: string; url: string; filename: string };
 type TipoCarta = "coracao" | "flor" | "sol" | "nuvem";
 
-// Coração
+
 const globCoracao = import.meta.glob(
   "@/assets/images/coracao/cartas-coracao-*.{png,PNG,jpg,JPG,jpeg,JPEG,webp,WEBP}",
   { eager: true, import: "default" }
 ) as Record<string, string>;
-// Sol
+
 const globSol = import.meta.glob(
   "@/assets/images/sol/cartas-sol-*.{png,PNG,jpg,JPG,jpeg,JPEG,webp,WEBP}",
   { eager: true, import: "default" }
 ) as Record<string, string>;
-// Flor
+
 const globFlor = import.meta.glob(
   "@/assets/images/flor/cartas-flor-*.{png,PNG,jpg,JPG,jpeg,JPEG,webp,WEBP}",
   { eager: true, import: "default" }
 ) as Record<string, string>;
-// Nuvem
+
 const globNuvem = import.meta.glob(
   "@/assets/images/nuvem/cartas-nuvem-*.{png,PNG,jpg,JPG,jpeg,JPEG,webp,WEBP}",
   { eager: true, import: "default" }
 ) as Record<string, string>;
 
-// Monta baralho a partir do glob
+
 const montarDeck = (globMap: Record<string, string>): Carta[] =>
   Object.entries(globMap)
     .sort(([a], [b]) => a.localeCompare(b))
@@ -50,7 +50,7 @@ const DECKS: Record<TipoCarta, Carta[]> = {
   nuvem: montarDeck(globNuvem),
 };
 
-// Heurística para decidir o baralho pela opção escolhida
+
 const inferirTipoCarta = (opcao: string): TipoCarta => {
   const txt = (opcao || "")
     .toLowerCase()
@@ -70,15 +70,15 @@ const inferirTipoCarta = (opcao: string): TipoCarta => {
   return "coracao";
 };
 
-// ================== Hook ==================
+
 export function useMensagem() {
   const [status, setStatus] = useState<string>("");
-  const [mensagemSelecionada, setMensagemSelecionada] = useState<string>("");
+  const [selecionadas, setSelecionadas] = useState<string[]>([]);
   const [enviadoHoje, setEnviadoHoje] = useState<boolean>(false);
   const [enviosHoje, setEnviosHoje] = useState<number>(0);
   const { perfil } = useContext(AuthContext);
 
-  // Conta aberturas de hoje (limite diário)
+
   useEffect(() => {
     if (!perfil?.id) return;
 
@@ -120,27 +120,20 @@ export function useMensagem() {
             confirmButtonText: "OK",
           });
         }
+
+
+        if (!limite && count === MAX_POR_DIA - 1) {
+          setStatus("Você pode abrir mais uma caixinha.");
+        }
       } catch (error) {
         console.error("Erro ao verificar envio:", error);
       }
     })();
   }, [perfil?.id]);
 
-  const handleClickMensagem = (label: string) => {
-    if (enviadoHoje) {
-      Swal.fire({
-        icon: "error",
-        title: "Atenção",
-        text: `Você já abriu suas ${MAX_POR_DIA} caixinhas hoje.`,
-        confirmButtonText: "OK",
-      });
-      return;
-    }
-    setMensagemSelecionada(label);
-  };
 
   const obterCartasJaEntregues = async (idUsuario: string) => {
-    const historico = await verificarEnvioHoje(); // retorna tudo
+    const historico = await verificarEnvioHoje(); 
     const lista = Array.isArray(historico) ? historico : [];
     const usadas = new Set(
       lista
@@ -150,29 +143,63 @@ export function useMensagem() {
     return usadas;
   };
 
-  const sortearCartaUnica = async (
+
+  const sortearCartaComUsadas = (
     tipo: TipoCarta,
-    idUsuario: string
-  ): Promise<Carta | null> => {
-    const usadas = await obterCartasJaEntregues(idUsuario);
+    usadas: Set<string>
+  ): Carta | null => {
     const deck = DECKS[tipo];
-
-
     const disponiveis = deck.filter(
       (c) => !usadas.has(c.filename.toLowerCase())
     );
-
-    if (disponiveis.length === 0) {
-      return null; 
-    }
-
+    if (disponiveis.length === 0) return null;
     const idx = Math.floor(Math.random() * disponiveis.length);
     return disponiveis[idx];
   };
 
-  const enviarMensagem = async () => {
-    if (!mensagemSelecionada) {
-      setStatus("Selecione uma mensagem antes de enviar.");
+
+  const restantesHoje = Math.max(MAX_POR_DIA - enviosHoje, 0);
+
+  const toggleOpcao = useCallback(
+    (label: string) => {
+      if (enviadoHoje) {
+        Swal.fire({
+          icon: "error",
+          title: "Atenção",
+          text: `Você já abriu suas ${MAX_POR_DIA} caixinhas hoje.`,
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+      setSelecionadas((prev) => {
+        const jaSelecionada = prev.includes(label);
+        if (jaSelecionada) {
+
+          return prev.filter((l) => l !== label);
+        }
+
+        if (prev.length >= restantesHoje) {
+          Swal.fire({
+            icon: "info",
+            title: "Limite de seleção",
+            text:
+              restantesHoje > 0
+                ? `Você pode abrir mais ${restantesHoje} caixinha(s) hoje.`
+                : "Você já atingiu o limite de hoje.",
+            confirmButtonText: "OK",
+          });
+          return prev;
+        }
+        return [...prev, label];
+      });
+    },
+    [enviadoHoje, restantesHoje]
+  );
+
+
+  const enviarMensagens = useCallback(async () => {
+    if (selecionadas.length === 0) {
+      setStatus("Selecione ao menos 1 caixinha.");
       return;
     }
 
@@ -199,53 +226,85 @@ export function useMensagem() {
       return;
     }
 
-    setStatus("Enviando...");
-
-    try {
-      // Decide o baralho pela opção selecionada
-      const tipo = inferirTipoCarta(mensagemSelecionada);
-
-      // 🔐 Sorteia uma carta AINDA NÃO ENTREGUE para este usuário (sem repetição)
-      const carta = await sortearCartaUnica(tipo, String(perfil.id));
-
-      if (!carta) {
-        // Baralho esgotado para este usuário (todas já vistas)
-        await Swal.fire({
-          icon: "info",
-          title: "Sem cartas novas nesse tema",
-          text: "Você já recebeu todas as cartas desse tema. Escolha outro tema para continuar.",
-          confirmButtonText: "OK",
-        });
-        setStatus("");
-        return; // não salvar repetida
-      }
-
-      // Salva no banco o nome da carta escolhida (não repetida)
-      await enviarAPI(carta.filename, String(perfil.id));
-
-      // Exibe a MESMA carta no Swal
-      await Swal.fire({
-        title:
-          tipo === "sol"
-            ? "Sua esperança ☀️"
-            : tipo === "flor"
-            ? "Sua esperança 🌸"
-            : tipo === "nuvem"
-            ? "Sua saúde ☁️"
-            : "Sua carta de Empatia & Afeto ❤️",
-        text: "Uma mensagem especial para você!",
-        imageUrl: carta.url,
-        imageAlt: carta.filename,
-        imageWidth: 360,
-        showConfirmButton: true,
+    const restantes = Math.max(MAX_POR_DIA - enviosHoje, 0);
+    if (selecionadas.length > restantes) {
+      setStatus(
+        `Você pode abrir mais ${restantes} caixinha(s) hoje. Ajuste sua seleção.`
+      );
+      Swal.fire({
+        icon: "info",
+        title: "Seleção acima do limite",
+        text: `Você pode abrir mais ${restantes} caixinha(s) hoje.`,
         confirmButtonText: "OK",
       });
+      return;
+    }
 
-      // Atualiza contador/limite
-      const novoCount = enviosHoje + 1;
+    setStatus("Abrindo suas caixinhas...");
+
+    try {
+
+      const usadas = await obterCartasJaEntregues(String(perfil.id));
+
+      let abertasAgora = 0;
+
+   
+      for (const label of selecionadas) {
+        const tipo = inferirTipoCarta(label);
+
+        const carta = sortearCartaComUsadas(tipo, usadas);
+        if (!carta) {
+          await Swal.fire({
+            icon: "info",
+            title: "Sem cartas novas nesse tema",
+            text: "Você já recebeu todas as cartas desse tema. Escolha outro tema para continuar.",
+            confirmButtonText: "OK",
+          });
+          continue;
+        }
+
+
+        await enviarAPI(carta.filename, String(perfil.id));
+        usadas.add(carta.filename.toLowerCase());
+        abertasAgora++;
+
+        await Swal.fire({
+          title:
+            tipo === "sol"
+              ? "Sua esperança ☀️"
+              : tipo === "flor"
+              ? "Sua esperança 🌸"
+              : tipo === "nuvem"
+              ? "Sua saúde ☁️"
+              : "Sua carta de Empatia & Afeto ❤️",
+          text: "Uma mensagem especial para você!",
+          imageUrl: carta.url,
+          imageAlt: carta.filename,
+          imageWidth: 360,
+          showConfirmButton: true,
+          confirmButtonText: "OK",
+        });
+      }
+
+
+      const novoCount = enviosHoje + abertasAgora;
       setEnviosHoje(novoCount);
       setEnviadoHoje(novoCount >= MAX_POR_DIA);
-      setStatus("");
+
+
+      setSelecionadas([]);
+
+
+      if (abertasAgora > 0) {
+        const rest = Math.max(MAX_POR_DIA - novoCount, 0);
+        if (rest > 0) {
+          setStatus("Você pode abrir mais uma caixinha.");
+        } else {
+          setStatus("Suas mensagens foram abertas com sucesso! 💚");
+        }
+      } else {
+        setStatus("");
+      }
     } catch (error: any) {
       console.error(error);
       setStatus("Erro ao conectar com o servidor.");
@@ -256,15 +315,22 @@ export function useMensagem() {
         confirmButtonText: "OK",
       });
     }
-  };
+  }, [selecionadas, perfil?.id, enviosHoje]);
+
+
+  const limiteDiario = MAX_POR_DIA;
+  const abertasHoje = enviosHoje;
 
   return {
+
     status,
-    mensagemSelecionada,
-    setMensagemSelecionada,
+    selecionadas,
     enviadoHoje,
-    handleClickMensagem,
-    enviarMensagem,
+    enviosHoje,
+    abertasHoje,
+    limiteDiario,
+    toggleOpcao,
+    enviarMensagens,
     perfil,
   };
 }

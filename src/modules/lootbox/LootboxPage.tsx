@@ -8,9 +8,7 @@ import {
   ButtonBase,
 } from "@mui/material";
 import { useMensagem } from "./useLootbox";
-import Navbar from "@/modules/lootbox/components/Navbar";
-import Logo from "@/assets/images/logo_unimed.png";
-import Logo2 from "@/assets/images/pinheiro.jpg";
+
 import Caixinha from "@/assets/images/caixinha-bem-estar-texto.jpg";
 import Img1 from "@/assets/images/empatia.jpg";
 import Img2 from "@/assets/images/esperaca.jpg";
@@ -20,25 +18,21 @@ import Img4 from "@/assets/images/saude.jpg";
 import {
   mainContainerStyle,
   paperStyle,
-  heroTitleOutline,
+  tituloDestaqueContorno,
   gridMobileStyle,
   gridDesktopStyle,
   buttonEnviarStyle,
   statusTextStyle,
-
-  // styles
-  heroContainerStyle,
-  heroSquarePinkTL,
-  heroSquareOrangeTop,
-  heroSquarePinkRight,
-  heroStripeGreenBottom,
-  heroBrandImg,
-  heroBrandWrap,
-  heroCopyContainer,
-  heroParagraph,
-  heroFinalQuestion,
-
-  // image styles
+  secaoDestaqueContainer,
+  decoQuadradoRosaSupEsq,
+  decoQuadradoLaranjaTopoCentro,
+  decoQuadradoRosaDireita,
+  decoFaixaVerdeInferior,
+  marcaImagemTitulo,
+  marcaContainerTitulo,
+  textoIntroContainer,
+  paragrafoIntro,
+  perguntaFinalDestaque,
   optionButtonBaseStyle,
   optionImageBaseStyle,
   optionImageMobileSize,
@@ -57,13 +51,13 @@ const opcoes = [
 
 function HeroBanner() {
   return (
-    <Box sx={heroContainerStyle}>
-      <Box sx={heroSquarePinkTL} />
-      <Box sx={heroSquareOrangeTop} />
-      <Box sx={heroSquarePinkRight} />
-      <Box sx={heroStripeGreenBottom} />
+    <Box sx={secaoDestaqueContainer}>
+      <Box sx={decoQuadradoRosaSupEsq} />
+      <Box sx={decoQuadradoLaranjaTopoCentro} />
+      <Box sx={decoQuadradoRosaDireita} />
+      <Box sx={decoFaixaVerdeInferior} />
 
-      <Box sx={heroBrandWrap}>
+      <Box sx={marcaContainerTitulo}>
         <Box
           component="img"
           src={Caixinha}
@@ -71,26 +65,26 @@ function HeroBanner() {
           loading="eager"
           decoding="async"
           draggable={false}
-          sx={heroBrandImg}
+          sx={marcaImagemTitulo}
         />
       </Box>
 
-      <Box sx={heroCopyContainer}>
-        <Typography sx={heroParagraph}>
+      <Box sx={textoIntroContainer}>
+        <Typography sx={paragrafoIntro}>
           Todos nós carregamos pequenas <strong>“caixinhas da vida”</strong>:
           lugares onde guardamos emoções, lembranças e sentidos. Algumas pesam,
           outras fortalecem.
         </Typography>
-        <Typography sx={heroParagraph}>
+        <Typography sx={paragrafoIntro}>
           A <strong>Caixinha do Bem-Estar</strong> é um convite para abrir
           espaço ao que faz bem, para dar atenção ao que traz sentido e leveza
           ao seu dia.
         </Typography>
-        <Typography sx={heroParagraph}>
+        <Typography sx={paragrafoIntro}>
           Aqui, você pode abrir até duas caixinhas por dia e encontrar mensagens
           que acolhem, inspiram e lembram você de cuidar de si.
         </Typography>
-        <Typography sx={heroFinalQuestion}>
+        <Typography sx={perguntaFinalDestaque}>
           E hoje, qual caixinha você quer abrir?
         </Typography>
       </Box>
@@ -101,107 +95,160 @@ function HeroBanner() {
 export default function LootboxPage() {
   const {
     status,
-    mensagemSelecionada,
+    selecionadas,
+    abertasHoje,
+    limiteDiario,
     enviadoHoje,
-    handleClickMensagem,
-    enviarMensagem,
+    toggleOpcao,
+    enviarMensagens,
   } = useMensagem();
 
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const prefersReducedMotion = useMediaQuery(
-    "(prefers-reduced-motion: reduce)"
-  );
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"), { noSsr: true });
+  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)", {
+    noSsr: true,
+  });
+
+  const restantesHoje = Math.max(limiteDiario - abertasHoje, 0);
+  const podeSelecionarMais = selecionadas.length < restantesHoje;
+  const jaAtingiuLimite = restantesHoje === 0;
+
+  const handleClickMensagem = (label: string) => {
+    const jaSelecionada = selecionadas.includes(label);
+    if (jaSelecionada || podeSelecionarMais) toggleOpcao(label);
+  };
+
+  const botaoDesabilitado =
+    selecionadas.length === 0 || enviadoHoje || selecionadas.length > restantesHoje;
+
+  const botaoTexto =
+    selecionadas.length > 0
+      ? `Abrir ${selecionadas.length} caixinha(s): ${selecionadas.join(" + ")}`
+      : "Abrir caixinha";
+
+  const instrucoes =
+    restantesHoje >= 2
+      ? "Selecione até duas caixinhas para abrir e descubra sua mensagem!"
+      : restantesHoje === 1
+      ? "Selecione mais uma caixinha para abrir!"
+      : "Você já abriu todas as caixinhas de hoje.";
 
   return (
     <Box component="main" sx={mainContainerStyle}>
-      <Navbar Logo={Logo} Logo2={Logo2} />
-
       <Paper elevation={5} sx={paperStyle}>
-        {/* HERO sem bg image */}
         <HeroBanner />
 
-        <Typography variant="h1" sx={heroTitleOutline}>
-          Selecione duas caixinhas para abrir e descubra sua mensagem!
+        <Typography variant="h1" sx={tituloDestaqueContorno}>
+          {instrucoes}
         </Typography>
 
+        {jaAtingiuLimite && (
+          <Typography sx={{ mt: 1 }} aria-live="polite">
+            Você já abriu {limiteDiario} caixinhas hoje. Volte amanhã 💚
+          </Typography>
+        )}
+
+        {/* Grade de opções */}
         {isMobile ? (
           <Box sx={gridMobileStyle}>
-            {opcoes.map(({ label, src }) => (
-              <ButtonBase
-                key={label}
-                aria-label={label}
-                onClick={() => handleClickMensagem(label)}
-                disableRipple
-                onDragStart={(e) => e.preventDefault()}
-                sx={optionButtonBaseStyle}
-              >
-                <Box
-                  component="img"
-                  src={src}
-                  alt={label}
+            {opcoes.map(({ label, src }) => {
+              const selected = selecionadas.includes(label);
+              const bloqueada = !selected && !podeSelecionarMais;
+              return (
+                <ButtonBase
+                  key={label}
+                  aria-label={label}
+                  aria-pressed={selected}
+                  aria-disabled={bloqueada}
+                  onClick={() => handleClickMensagem(label)}
+                  disableRipple
+                  draggable={false}
+                  onDragStart={(e) => e.preventDefault()}
                   sx={{
-                    ...optionImageBaseStyle,
-                    ...optionImageMobileSize,
-                    ...(mensagemSelecionada === label
-                      ? {
-                          ...optionImageSelectedStyle,
-                          ...selectedWiggle(prefersReducedMotion),
-                        }
-                      : optionImageHoverStyle),
+                    ...optionButtonBaseStyle,
+                    ...(bloqueada ? { opacity: 0.35, pointerEvents: "none" } : {}),
                   }}
-                />
-              </ButtonBase>
-            ))}
+                >
+                  <Box
+                    component="img"
+                    src={src}
+                    alt={label}
+                    loading="lazy"
+                    decoding="async"
+                    draggable={false}
+                    sx={{
+                      ...optionImageBaseStyle,
+                      ...optionImageMobileSize,
+                      ...(selected
+                        ? {
+                            ...optionImageSelectedStyle,
+                            ...selectedWiggle(prefersReducedMotion),
+                          }
+                        : optionImageHoverStyle),
+                    }}
+                  />
+                </ButtonBase>
+              );
+            })}
           </Box>
         ) : (
           <Box sx={gridDesktopStyle}>
-            {opcoes.map(({ label, src }) => (
-              <ButtonBase
-                key={label}
-                aria-label={label}
-                onClick={() => handleClickMensagem(label)}
-                disableRipple
-                draggable={false}
-                onDragStart={(e) => e.preventDefault()}
-                sx={optionButtonBaseStyle}
-              >
-                <Box
-                  component="img"
-                  src={src}
-                  alt={label}
+            {opcoes.map(({ label, src }) => {
+              const selected = selecionadas.includes(label);
+              const bloqueada = !selected && !podeSelecionarMais;
+              return (
+                <ButtonBase
+                  key={label}
+                  aria-label={label}
+                  aria-pressed={selected}
+                  aria-disabled={bloqueada}
+                  onClick={() => handleClickMensagem(label)}
+                  disableRipple
+                  draggable={false}
+                  onDragStart={(e) => e.preventDefault()}
                   sx={{
-                    ...optionImageBaseStyle,
-                    ...optionImageDesktopSize,
-                    ...(mensagemSelecionada === label
-                      ? {
-                          ...optionImageSelectedStyle,
-                          ...selectedWiggle(prefersReducedMotion),
-                        }
-                      : optionImageHoverStyle),
+                    ...optionButtonBaseStyle,
+                    ...(bloqueada ? { opacity: 0.35, pointerEvents: "none" } : {}),
                   }}
-                />
-              </ButtonBase>
-            ))}
+                >
+                  <Box
+                    component="img"
+                    src={src}
+                    alt={label}
+                    loading="lazy"
+                    decoding="async"
+                    draggable={false}
+                    sx={{
+                      ...optionImageBaseStyle,
+                      ...optionImageDesktopSize,
+                      ...(selected
+                        ? {
+                            ...optionImageSelectedStyle,
+                            ...selectedWiggle(prefersReducedMotion),
+                          }
+                        : optionImageHoverStyle),
+                    }}
+                  />
+                </ButtonBase>
+              );
+            })}
           </Box>
         )}
-
-        {/* {mensagemSelecionada && (
-          <Typography variant="h6" sx={mensagemSelecionadoStyle}>
-            Você selecionou: {mensagemSelecionada}
-          </Typography>
-        )} */}
 
         <Button
           variant="contained"
           sx={buttonEnviarStyle}
-          onClick={enviarMensagem}
-          disabled={!mensagemSelecionada || enviadoHoje}
+          onClick={enviarMensagens}
+          disabled={botaoDesabilitado}
         >
-          Abrir caixinha - {mensagemSelecionada}
+          {botaoTexto}
         </Button>
 
-        {status && <Typography sx={statusTextStyle}>{status}</Typography>}
+        {status && (
+          <Typography sx={statusTextStyle} aria-live="polite">
+            {status}
+          </Typography>
+        )}
       </Paper>
     </Box>
   );
