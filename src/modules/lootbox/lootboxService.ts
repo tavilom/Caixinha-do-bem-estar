@@ -13,7 +13,6 @@ export async function listarMensagens(): Promise<Mensagem[]> {
   return data as Mensagem[];
 }
 
-// POST /mensagem
 export async function criarMensagem(
   nome_carta: string,
   id_ws: string
