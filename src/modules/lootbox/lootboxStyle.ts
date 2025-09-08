@@ -221,7 +221,7 @@ export const buttonEnviarStyle = {
   mt: 3,
   fontSize: { xs: "0.9rem", md: "1rem" },
   px: 4,
-  bgcolor: lootColors.yellow,
+  bgcolor: lootColors.orange,
   color: lootColors.black,
 };
 

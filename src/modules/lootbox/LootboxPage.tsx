@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import { useMensagem } from "./useLootbox";
 
+import marcadagua from "@/assets/images/marcadagua.png";
 import Caixinha from "@/assets/images/caixinha-bem-estar-texto.jpg";
 import Img1 from "@/assets/images/empatia.jpg";
 import Img2 from "@/assets/images/esperaca.jpg";
@@ -18,7 +19,7 @@ import Img4 from "@/assets/images/saude.jpg";
 import {
   mainContainerStyle,
   paperStyle,
-  tituloDestaqueContorno,
+  //tituloDestaqueContorno,
   gridMobileStyle,
   gridDesktopStyle,
   buttonEnviarStyle,
@@ -87,6 +88,9 @@ function HeroBanner() {
         <Typography sx={perguntaFinalDestaque}>
           E hoje, qual caixinha você quer abrir?
         </Typography>
+        <Typography sx={perguntaFinalDestaque}>
+          Você pode abrir até duas caixinhas por dia
+        </Typography>
       </Box>
     </Box>
   );
@@ -105,9 +109,12 @@ export default function LootboxPage() {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"), { noSsr: true });
-  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)", {
-    noSsr: true,
-  });
+  const prefersReducedMotion = useMediaQuery(
+    "(prefers-reduced-motion: reduce)",
+    {
+      noSsr: true,
+    }
+  );
 
   const restantesHoje = Math.max(limiteDiario - abertasHoje, 0);
   const podeSelecionarMais = selecionadas.length < restantesHoje;
@@ -119,28 +126,30 @@ export default function LootboxPage() {
   };
 
   const botaoDesabilitado =
-    selecionadas.length === 0 || enviadoHoje || selecionadas.length > restantesHoje;
+    selecionadas.length === 0 ||
+    enviadoHoje ||
+    selecionadas.length > restantesHoje;
 
   const botaoTexto =
     selecionadas.length > 0
       ? `Abrir ${selecionadas.length} caixinha(s): ${selecionadas.join(" + ")}`
       : "Abrir caixinha";
 
-  const instrucoes =
-    restantesHoje >= 2
-      ? "Selecione até duas caixinhas para abrir e descubra sua mensagem!"
-      : restantesHoje === 1
-      ? "Selecione mais uma caixinha para abrir!"
-      : "Você já abriu todas as caixinhas de hoje.";
+  // const instrucoes =
+  //   restantesHoje >= 2
+  //     ? "Selecione até duas caixinhas para abrir e descubra sua mensagem!"
+  //     : restantesHoje === 1
+  //     ? "Selecione mais uma caixinha para abrir!"
+  //     : "Você já abriu todas as caixinhas de hoje.";
 
   return (
     <Box component="main" sx={mainContainerStyle}>
-      <Paper elevation={5} sx={paperStyle}>
+      <Paper elevation={5} sx={{ ...paperStyle, overflow: "hidden" }}>
         <HeroBanner />
 
-        <Typography variant="h1" sx={tituloDestaqueContorno}>
+        {/* <Typography variant="h1" sx={tituloDestaqueContorno}>
           {instrucoes}
-        </Typography>
+        </Typography> */}
 
         {jaAtingiuLimite && (
           <Typography sx={{ mt: 1 }} aria-live="polite">
@@ -148,7 +157,6 @@ export default function LootboxPage() {
           </Typography>
         )}
 
-        {/* Grade de opções */}
         {isMobile ? (
           <Box sx={gridMobileStyle}>
             {opcoes.map(({ label, src }) => {
@@ -166,7 +174,9 @@ export default function LootboxPage() {
                   onDragStart={(e) => e.preventDefault()}
                   sx={{
                     ...optionButtonBaseStyle,
-                    ...(bloqueada ? { opacity: 0.35, pointerEvents: "none" } : {}),
+                    ...(bloqueada
+                      ? { opacity: 0.35, pointerEvents: "none" }
+                      : {}),
                   }}
                 >
                   <Box
@@ -208,7 +218,9 @@ export default function LootboxPage() {
                   onDragStart={(e) => e.preventDefault()}
                   sx={{
                     ...optionButtonBaseStyle,
-                    ...(bloqueada ? { opacity: 0.35, pointerEvents: "none" } : {}),
+                    ...(bloqueada
+                      ? { opacity: 0.35, pointerEvents: "none" }
+                      : {}),
                   }}
                 >
                   <Box
@@ -249,6 +261,20 @@ export default function LootboxPage() {
             {status}
           </Typography>
         )}
+        <Box
+          aria-hidden
+          sx={{
+            mt: 10,
+            ml: (theme) => `-${theme.spacing(3)}`,
+            mr: (theme) => `-${theme.spacing(3)}`,
+            width: (theme) => `calc(100% + ${theme.spacing(6)})`,
+            height: 180, 
+            backgroundImage: `url(${marcadagua})`,
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
       </Paper>
     </Box>
   );
